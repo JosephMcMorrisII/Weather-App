@@ -13,14 +13,15 @@
        <input type="text" placeholder="Enter city name" spellcheck="false"> 
        <button><img src="images/search.png" alt="search icon"></button>
     </div>
+    <div class="error" style="display:none;">Invalid city name</div>
 
-    <div class="weather">
+    <div class="weather" style="display:none;">
         <img src="images/rain.png" class="weather-icon" alt="weather icon">
         <h1 class="temp">22°</h1>
         <h2 class="city">New York</h2>
     </div>
 
-    <div class="details">
+    <div class="details" style="display:none;">
         <div class="col">
             <img src="images/humidity.png" alt="humidity icon">
             <div>
@@ -38,6 +39,74 @@
         </div>
     </div>
 </div>
+
+<script>
+
+const apiKey = "187e2f16789fd349daa97e46bfc31dff";
+const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=imperial&q=";
+
+const searchBox = document.querySelector(".search input");
+const searchBtn = document.querySelector(".search button");
+const weatherIcon = document.querySelector(".weather-icon");
+const weatherSection = document.querySelector(".weather");
+const detailsSection = document.querySelector(".details");
+const errorSection = document.querySelector(".error");
+
+async function checkWeather(city) {
+    try {
+        const response = await fetch(apiUrl + city + `&appid=${apiKey}`);
+        if (!response.ok) {
+            throw new Error("City not found");
+        }
+
+        const data = await response.json();
+
+        // Update weather details
+        document.querySelector(".city").innerHTML = data.name;
+        document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°F";
+        document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+        document.querySelector(".wind").innerHTML = `${data.wind.speed} mph`;
+
+        // Update weather icon
+        if (data.weather[0].main === "Clouds") {
+            weatherIcon.src = "images/clouds.png";
+        } else if (data.weather[0].main === "Rain") {
+            weatherIcon.src = "images/rain.png";
+        } else if (data.weather[0].main === "Drizzle") {
+            weatherIcon.src = "images/drizzle.png";
+        } else if (data.weather[0].main === "Mist") {
+            weatherIcon.src = "images/mist.png";
+        } else {
+            weatherIcon.src = "images/clear.png"; // Default icon for clear weather
+        }
+
+        // Show weather and details sections, hide error
+        weatherSection.style.display = "block";
+        detailsSection.style.display = "flex";
+        errorSection.style.display = "none";
+
+    } catch (error) {
+        // Hide weather details, show error
+        weatherSection.style.display = "none";
+        detailsSection.style.display = "none";
+        errorSection.style.display = "block";
+    }
+}
+
+searchBtn.addEventListener("click", () => {
+    const city = searchBox.value.trim(); // Get city from input field and trim extra spaces
+    if (city) {
+        checkWeather(city); // Call checkWeather with the entered city
+    } else {
+        // Handle empty input
+        weatherSection.style.display = "none";
+        detailsSection.style.display = "none";
+        errorSection.style.display = "block";
+        errorSection.textContent = "Please enter a city name.";
+    }
+});
+
+</script>
 
 </body>
 </html>
